@@ -66,7 +66,8 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	}
 
 	for (int i = 0; i < num_particles; i++) {
-		particles[i].theta = pred_yaw(particles[i].theta, delta_t, yaw_rate);
+		
+		particles[i] = predictParticle(particles[i], delta_t, velocity, yaw_rate);
 
 		Particle p = particles[i];
 		cout << "## pred_after << " << p.x << " " << p.y << " " << p.theta << endl;
@@ -77,8 +78,27 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 
 }
 
+Particle ParticleFilter::predictParticle(Particle p, double dt, double v, double yaw_rate) {
+	p.theta = pred_yaw(p.theta, dt, yaw_rate);
+	p.x = pred_x(p.x, dt, v, p.theta, yaw_rate);
+	p.y = pred_y(p.y, dt, v, p.theta, yaw_rate);
+	return p;
+}
+
 double ParticleFilter::pred_yaw(double yaw, double dt, double yaw_rate) {
 	return yaw + dt * yaw_rate;
+}
+
+double ParticleFilter::pred_x(double x, double dt, double v, double yaw, double yaw_rate) {
+	double v_per_yr = v / yaw_rate;
+	double delta = v_per_yr * ( sin(pred_yaw(yaw, dt, yaw_rate)) - sin(yaw)  );
+	return x + delta;
+}
+
+double ParticleFilter::pred_y(double y, double dt, double v, double yaw, double yaw_rate) {
+	double v_per_yr = v / yaw_rate;
+	double delta = v_per_yr * (cos(yaw) - cos(pred_yaw(yaw, dt, yaw_rate)));
+	return y + delta;
 }
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
