@@ -61,7 +61,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 
 	for (int i = 0; i < num_particles; i++) {
 		Particle p = particles[i];
-		cout << "## pred_before << " << p.x << " " << p.y << " " << p.theta << endl;
+		//cout << "## pred_before << " << p.x << " " << p.y << " " << p.theta << endl;
 	}
 
 	default_random_engine gen;
@@ -82,7 +82,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 		particles[i] = particleWithAddedNoise;
 
 		Particle p = particles[i];
-		cout << "## pred_after << " << p.x << " " << p.y << " " << p.theta << endl;
+		//cout << "## pred_after << " << p.x << " " << p.y << " " << p.theta << endl;
 	}
 	//for(int i; i < sizeof(std_pos); i++) {
 	//	cout ";;; " << i << endl;
@@ -140,10 +140,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 
 	for (int i = 0; i < map_landmarks.landmark_list.size(); i++) {
-		//cout << "!map: " << map_landmarks.landmark_list[i].id_i << "x : " << map_landmarks.landmark_list[i].x_f << "y : " << map_landmarks.landmark_list[i].y_f << endl;
+		cout << "!map: " << map_landmarks.landmark_list[i].id_i << "x : " << map_landmarks.landmark_list[i].x_f << "y : " << map_landmarks.landmark_list[i].y_f << endl;
 	}
 	for (int i = 0; i < observations.size(); i++) {
-		//cout << "@ obs n." << observations[i].id << " x: " << observations[i].x << " y: " << observations[i].y <<endl;	
+		cout << "@ obs n." << observations[i].id << " x: " << observations[i].x << " y: " << observations[i].y <<endl;	
 	}	
 }
 
