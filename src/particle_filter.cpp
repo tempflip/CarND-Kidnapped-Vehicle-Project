@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <iterator>
+#include <stdlib.h>
 
 #include "particle_filter.h"
 
@@ -139,12 +140,46 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	cout << "sensor_range: " << sensor_range << endl;
 
 
-	for (int i = 0; i < map_landmarks.landmark_list.size(); i++) {
-		cout << "!map: " << map_landmarks.landmark_list[i].id_i << "x : " << map_landmarks.landmark_list[i].x_f << "y : " << map_landmarks.landmark_list[i].y_f << endl;
-	}
+
 	for (int i = 0; i < observations.size(); i++) {
-		cout << "@ obs n." << observations[i].id << " x: " << observations[i].x << " y: " << observations[i].y <<endl;	
+		cout << "@ obs id \t" << observations[i].id << " x: " << observations[i].x << " y: " << observations[i].y <<endl;	
+
+
+		LandmarkObs transformedLan = transformLandmark(observations[i], particles[0], map_landmarks);
+		cout << "@ obs trans id \t" << transformedLan.id << " x: " << transformedLan.x << " y: " << transformedLan.y <<endl;	
+
 	}	
+	exit(0);
+}
+
+LandmarkObs ParticleFilter::transformLandmark(LandmarkObs l, Particle p, const Map &map_landmarks) {
+	LandmarkObs lan;
+	lan.x =  homo_x(p.x, p.theta, l.x, l.y);
+	lan.y =  homo_y(p.y, p.theta, l.x, l.y);
+
+	int nearestId = 0;
+	double nearestDist = 99999999;
+
+	for (int i = 0; i < map_landmarks.landmark_list.size(); i++) {
+		double distance = sqrt(pow((lan.x - map_landmarks.landmark_list[i].x_f), 2) + pow((lan.y - map_landmarks.landmark_list[i].y_f), 2));
+		if (distance < nearestDist) {
+			nearestId = map_landmarks.landmark_list[i].id_i;
+			nearestDist = distance;
+		}
+		//cout << "!map: " << map_landmarks.landmark_list[i].id_i << " x : " << map_landmarks.landmark_list[i].x_f << " y : " << map_landmarks.landmark_list[i].y_f << " D: " << distance << endl;
+	}
+	lan.id = nearestId;
+
+	return lan;
+}
+
+
+double ParticleFilter::homo_x(double xp, double theta_p, double xc, double yc) {
+	return xp + (cos(theta_p) * xc) - (sin(theta_p) * yc);
+}
+
+double ParticleFilter::homo_y(double yp, double theta_p, double xc, double yc) {
+	return yp + (sin(theta_p) * xc) + (sin(theta_p) * yc);
 }
 
 void ParticleFilter::resample() {

@@ -124,6 +124,14 @@ public:
 	
 	double pred_yaw(double yaw, double dt, double yaw_rate);
 
+	double homo_x(double xp, double theta_p, double xc, double yc);
+	
+	double homo_y(double yp, double theta_p, double xc, double yc);
+
+	LandmarkObs transformLandmark(LandmarkObs l, Particle p, const Map &map_landmarks);
+
+	
+
 };
 
 
