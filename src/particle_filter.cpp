@@ -231,7 +231,7 @@ double ParticleFilter::homo_x(double xp, double theta_p, double xc, double yc) {
 }
 
 double ParticleFilter::homo_y(double yp, double theta_p, double xc, double yc) {
-	return yp + (sin(theta_p) * xc) + (sin(theta_p) * yc);
+	return yp + (sin(theta_p) * xc) + (cos(theta_p) * yc);
 }
 
 void ParticleFilter::resample() {
