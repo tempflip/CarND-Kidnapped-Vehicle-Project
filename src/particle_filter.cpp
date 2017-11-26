@@ -241,19 +241,41 @@ void ParticleFilter::resample() {
 
 	double bestW = 0;
 	Particle bestP;
+	std::vector<Particle> bestPList;
 
-	for (int i = 0; i < particles.size(); i ++) {
-		cout << "## resample\tW: " << particles[i].weight << "\tx: " << particles[i].x << "\ty: " << particles[i].y << "\tth: " << particles[i].theta << endl;
-		if (particles[i].weight > bestW) {
-			bestP = particles[i];
-			bestW = particles[i].weight;
+	int pToSample = 3;
+
+	while (bestPList.size() < pToSample) {
+		for (int i = 0; i < particles.size(); i ++) {
+			//cout << "## resample\tW: " << particles[i].weight << "\tx: " << particles[i].x << "\ty: " << particles[i].y << "\tth: " << particles[i].theta << endl;
+			
+			bool processed = false;
+			for (int c = 0; c < bestPList.size(); c++) {
+				if (particles[i].weight == bestPList[c].weight) processed = true;
+			}
+
+			if (processed == true) continue;
+
+			if (particles[i].weight > bestW) {
+				bestP = particles[i];
+				bestW = particles[i].weight;
+			}
 		}
+		bestPList.push_back(bestP);
+		bestW = 0;
+	}
+	//cout << "BEST W " << bestW << endl;
+
+	for (int c = 0; c < bestPList.size(); c++) {
+		cout << "BEST W: " << bestPList[c].weight << "\t x: "  << bestPList[c].x << "\t y: " << bestPList[c].y << "\t th: " << bestPList[c].theta << endl;
 	}
 
-	cout << "BEST W " << bestW << endl;
 
-	for (int i = 0; i < particles.size(); i ++) {
-		particles[i] = bestP;
+	int sampleCounter;
+	for (int i = 0; i < num_particles; i ++) {
+		particles[i] = bestPList[sampleCounter % pToSample];
+
+		sampleCounter++;
 	}
 
 
