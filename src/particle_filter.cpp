@@ -24,23 +24,21 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	//   x, y, theta and their uncertainties from GPS) and all weights to 1. 
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
+
 	default_random_engine gen;
-	double std_x = std[0];
-	double std_y = std[1];
-	double std_theta = std[2];
-
-	normal_distribution<double> dist_x(x, std_x);
-	normal_distribution<double> dist_y(y, std_y);
-	normal_distribution<double> dist_theta(theta, std_theta);	
-
+	
 	is_initialized = true;
 	num_particles = 10;
 	for (int i = 0; i < num_particles; i++) {
+		normal_distribution<double> dist_x(x, std[0]);
+		normal_distribution<double> dist_y(y, std[1]);
+		normal_distribution<double> dist_theta(theta, std[2]);	
 
 		Particle p;
 		p.x = dist_x(gen);
 		p.y = dist_y(gen);
 		p.theta = dist_theta(gen);
+
 		p.weight = 1;
 		particles.push_back(p);
 		cout << "## init << " << p.x << " " << p.y << " " << p.theta << endl;
@@ -48,6 +46,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 
 
 }
+
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
 	// TODO: Add measurements to each particle and add random Gaussian noise.
@@ -65,9 +64,22 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 		cout << "## pred_before << " << p.x << " " << p.y << " " << p.theta << endl;
 	}
 
+	default_random_engine gen;
+
 	for (int i = 0; i < num_particles; i++) {
-		
-		particles[i] = predictParticle(particles[i], delta_t, velocity, yaw_rate);
+		// prediction		
+		Particle particleUpdated = predictParticle(particles[i], delta_t, velocity, yaw_rate);
+		// noise
+		normal_distribution<double> dist_x(particleUpdated.x, std_pos[0]);
+		normal_distribution<double> dist_y(particleUpdated.y, std_pos[1]);
+		normal_distribution<double> dist_theta(particleUpdated.theta, std_pos[2]);	
+
+		Particle particleWithAddedNoise;
+		particleWithAddedNoise.x = dist_x(gen);
+		particleWithAddedNoise.y = dist_y(gen);
+		particleWithAddedNoise.theta = dist_theta(gen);
+
+		particles[i] = particleWithAddedNoise;
 
 		Particle p = particles[i];
 		cout << "## pred_after << " << p.x << " " << p.y << " " << p.theta << endl;

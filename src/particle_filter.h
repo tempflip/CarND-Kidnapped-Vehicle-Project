@@ -119,8 +119,11 @@ public:
 	}
 
 	double pred_x(double x, double dt, double v, double yaw, double yaw_rate);
+	
 	double pred_y(double y, double dt, double v, double yaw, double yaw_rate);
+	
 	double pred_yaw(double yaw, double dt, double yaw_rate);
+
 };
 
 
