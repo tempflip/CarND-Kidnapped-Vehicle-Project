@@ -29,7 +29,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	default_random_engine gen;
 	
 	is_initialized = true;
-	num_particles = 10;
+	num_particles = 20;
 	for (int i = 0; i < num_particles; i++) {
 		normal_distribution<double> dist_x(x, std[0]);
 		normal_distribution<double> dist_y(y, std[1]);
@@ -155,30 +155,30 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		
 		particles[c].weight = accuracy;
 	}
-	//exit(0);
+	normalizeWeights();
 }
 
 double ParticleFilter::getAccuracy(std::vector<LandmarkObs> landmarkList, const Map &map_landmarks) {
 
-	cout << "## calc accuracy" << endl;
+	//cout << "## calc accuracy" << endl;
 
 	double accuracy = 1;
 	for (int i = 0; i < landmarkList.size(); i++) {
 
 
 
-		cout << "$$$ " << landmarkList[i].id << "...." << map_landmarks.landmark_list[landmarkList[i].id - 1].id_i << endl;
+		//cout << "$$$ " << landmarkList[i].id << "...." << map_landmarks.landmark_list[landmarkList[i].id - 1].id_i << endl;
 
 		double lx = landmarkList[i].x;
 		double ly = landmarkList[i].y;
 		double mx = map_landmarks.landmark_list[landmarkList[i].id - 1].x_f;
 		double my = map_landmarks.landmark_list[landmarkList[i].id - 1].y_f;
 
-		cout << "$$$" << lx << " | " << mx << " ||| " << ly << " | " << my << endl;
+		//cout << "$$$" << lx << " | " << mx << " ||| " << ly << " | " << my << endl;
 
 		double dist = calcDistance(lx, ly, mx, my);
 		accuracy *= 1/dist;
-		cout << "*** " << dist; 
+		//cout << "*** " << dist; 
 	}
 
 	//for (int i = 0; i < map_landmarks.landmark_list.size() ; i ++) {		
@@ -187,6 +187,17 @@ double ParticleFilter::getAccuracy(std::vector<LandmarkObs> landmarkList, const 
 
 
 	return accuracy;
+}
+
+void ParticleFilter::normalizeWeights() {
+	double wSum = 0;
+	for (int i = 0; i < particles.size(); i ++) {
+		wSum += particles[i].weight;
+	}
+
+	for (int i = 0; i < particles.size(); i ++) {
+		particles[i].weight = particles[i].weight / wSum;
+	}
 }
 
 LandmarkObs ParticleFilter::transformLandmark(LandmarkObs l, Particle p, const Map &map_landmarks) {
@@ -227,6 +238,24 @@ void ParticleFilter::resample() {
 	// TODO: Resample particles with replacement with probability proportional to their weight. 
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
+
+	double bestW = 0;
+	Particle bestP;
+
+	for (int i = 0; i < particles.size(); i ++) {
+		cout << "## resample\tW: " << particles[i].weight << "\tx: " << particles[i].x << "\ty: " << particles[i].y << "\tth: " << particles[i].theta << endl;
+		if (particles[i].weight > bestW) {
+			bestP = particles[i];
+			bestW = particles[i].weight;
+		}
+	}
+
+	cout << "BEST W " << bestW << endl;
+
+	for (int i = 0; i < particles.size(); i ++) {
+		particles[i] = bestP;
+	}
+
 
 }
 
