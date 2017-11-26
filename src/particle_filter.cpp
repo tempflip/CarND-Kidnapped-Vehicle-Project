@@ -137,19 +137,56 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   3.33
 	//   http://planning.cs.uiuc.edu/node99.html
 
-	cout << "sensor_range: " << sensor_range << endl;
+	for (int c = 0; c < particles.size(); c++) {
+		
+		std::vector<LandmarkObs> transformedLanList;
+
+		for (int i = 0; i < observations.size(); i++) {
+			//cout << "@ obs id \t" << observations[i].id << " x: " << observations[i].x << " y: " << observations[i].y <<endl;	
+			
+			LandmarkObs transformedLan = transformLandmark(observations[i], particles[c], map_landmarks);
+			transformedLanList.push_back(transformedLan);
+			
+			//cout << "@ obs trans id \t" << transformedLan.id << " x: " << transformedLan.x << " y: " << transformedLan.y <<endl;	
+
+		}	
+
+		double accuracy = getAccuracy(transformedLanList, map_landmarks);
+		
+		particles[c].weight = accuracy;
+	}
+	//exit(0);
+}
+
+double ParticleFilter::getAccuracy(std::vector<LandmarkObs> landmarkList, const Map &map_landmarks) {
+
+	cout << "## calc accuracy" << endl;
+
+	double accuracy = 1;
+	for (int i = 0; i < landmarkList.size(); i++) {
 
 
 
-	for (int i = 0; i < observations.size(); i++) {
-		cout << "@ obs id \t" << observations[i].id << " x: " << observations[i].x << " y: " << observations[i].y <<endl;	
+		cout << "$$$ " << landmarkList[i].id << "...." << map_landmarks.landmark_list[landmarkList[i].id - 1].id_i << endl;
+
+		double lx = landmarkList[i].x;
+		double ly = landmarkList[i].y;
+		double mx = map_landmarks.landmark_list[landmarkList[i].id - 1].x_f;
+		double my = map_landmarks.landmark_list[landmarkList[i].id - 1].y_f;
+
+		cout << "$$$" << lx << " | " << mx << " ||| " << ly << " | " << my << endl;
+
+		double dist = calcDistance(lx, ly, mx, my);
+		accuracy *= 1/dist;
+		cout << "*** " << dist; 
+	}
+
+	//for (int i = 0; i < map_landmarks.landmark_list.size() ; i ++) {		
+	//	cout << i << " ((((( " << map_landmarks.landmark_list[i].id_i << endl;
+	//}
 
 
-		LandmarkObs transformedLan = transformLandmark(observations[i], particles[0], map_landmarks);
-		cout << "@ obs trans id \t" << transformedLan.id << " x: " << transformedLan.x << " y: " << transformedLan.y <<endl;	
-
-	}	
-	exit(0);
+	return accuracy;
 }
 
 LandmarkObs ParticleFilter::transformLandmark(LandmarkObs l, Particle p, const Map &map_landmarks) {
@@ -161,7 +198,8 @@ LandmarkObs ParticleFilter::transformLandmark(LandmarkObs l, Particle p, const M
 	double nearestDist = 99999999;
 
 	for (int i = 0; i < map_landmarks.landmark_list.size(); i++) {
-		double distance = sqrt(pow((lan.x - map_landmarks.landmark_list[i].x_f), 2) + pow((lan.y - map_landmarks.landmark_list[i].y_f), 2));
+		//double distance = sqrt(pow((lan.x - map_landmarks.landmark_list[i].x_f), 2) + pow((lan.y - map_landmarks.landmark_list[i].y_f), 2));
+		double distance = calcDistance(lan.x, lan.y, map_landmarks.landmark_list[i].x_f, map_landmarks.landmark_list[i].y_f);
 		if (distance < nearestDist) {
 			nearestId = map_landmarks.landmark_list[i].id_i;
 			nearestDist = distance;
@@ -173,6 +211,9 @@ LandmarkObs ParticleFilter::transformLandmark(LandmarkObs l, Particle p, const M
 	return lan;
 }
 
+double ParticleFilter::calcDistance(double x1, double y1, double x2, double y2) {
+	return sqrt(pow((x1 - x2), 2) + pow((y1 - y2), 2));
+}
 
 double ParticleFilter::homo_x(double xp, double theta_p, double xc, double yc) {
 	return xp + (cos(theta_p) * xc) - (sin(theta_p) * yc);
