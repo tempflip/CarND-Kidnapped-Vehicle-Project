@@ -82,7 +82,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 
 		particles[i] = particleWithAddedNoise;
 
-		Particle p = particles[i];
+		//cout << "theta " << particles[i].theta << endl;
 		//cout << "## pred_after << " << p.x << " " << p.y << " " << p.theta << endl;
 	}
 	//for(int i; i < sizeof(std_pos); i++) {
@@ -92,6 +92,9 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 }
 
 Particle ParticleFilter::predictParticle(Particle p, double dt, double v, double yaw_rate) {
+
+	//cout << "yaw_rate\t" << yaw_rate << endl; 
+
 	p.theta = pred_yaw(p.theta, dt, yaw_rate);
 	p.x = pred_x(p.x, dt, v, p.theta, yaw_rate);
 	p.y = pred_y(p.y, dt, v, p.theta, yaw_rate);
@@ -103,14 +106,24 @@ double ParticleFilter::pred_yaw(double yaw, double dt, double yaw_rate) {
 }
 
 double ParticleFilter::pred_x(double x, double dt, double v, double yaw, double yaw_rate) {
-	double v_per_yr = v / yaw_rate;
-	double delta = v_per_yr * ( sin(pred_yaw(yaw, dt, yaw_rate)) - sin(yaw)  );
+	double delta;
+	if (yaw_rate != 0) {
+		double v_per_yr = v / yaw_rate;
+		delta = v_per_yr * ( sin(pred_yaw(yaw, dt, yaw_rate)) - sin(yaw)  );
+	} else {
+		delta = v * dt * cos(yaw);
+	}
 	return x + delta;
 }
 
 double ParticleFilter::pred_y(double y, double dt, double v, double yaw, double yaw_rate) {
-	double v_per_yr = v / yaw_rate;
-	double delta = v_per_yr * (cos(yaw) - cos(pred_yaw(yaw, dt, yaw_rate)));
+	double delta;
+	if (yaw_rate != 0) {
+		double v_per_yr = v / yaw_rate;
+		delta = v_per_yr * (cos(yaw) - cos(pred_yaw(yaw, dt, yaw_rate)));
+	} else {
+		delta = v * dt * sin(yaw);
+	}
 	return y + delta;
 }
 
@@ -243,7 +256,7 @@ void ParticleFilter::resample() {
 	Particle bestP;
 	std::vector<Particle> bestPList;
 
-	int pToSample = 3;
+	int pToSample = 5;
 
 	while (bestPList.size() < pToSample) {
 		for (int i = 0; i < particles.size(); i ++) {
@@ -261,6 +274,7 @@ void ParticleFilter::resample() {
 				bestW = particles[i].weight;
 			}
 		}
+		//cout << "bestPList ping" << endl;
 		bestPList.push_back(bestP);
 		bestW = 0;
 	}
