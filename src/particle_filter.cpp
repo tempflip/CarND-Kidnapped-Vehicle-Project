@@ -158,26 +158,26 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			//cout << "@ obs id \t" << observations[i].id << " x: " << observations[i].x << " y: " << observations[i].y <<endl;	
 			
 			LandmarkObs transformedLan = transformLandmark(observations[i], particles[c], map_landmarks);
+
 			transformedLanList.push_back(transformedLan);
 			
 			//cout << "@ obs trans id \t" << transformedLan.id << " x: " << transformedLan.x << " y: " << transformedLan.y <<endl;	
 
 		}	
 
-		double accuracy = getAccuracy(transformedLanList, map_landmarks);
+		double accuracy = getAccuracy(transformedLanList, map_landmarks, sensor_range);
 		
 		particles[c].weight = accuracy;
 	}
 	normalizeWeights();
 }
 
-double ParticleFilter::getAccuracy(std::vector<LandmarkObs> landmarkList, const Map &map_landmarks) {
+double ParticleFilter::getAccuracy(std::vector<LandmarkObs> landmarkList, const Map &map_landmarks, double sensor_range) {
 
 	//cout << "## calc accuracy" << endl;
 
 	double accuracy = 1;
 	for (int i = 0; i < landmarkList.size(); i++) {
-
 
 
 		//cout << "$$$ " << landmarkList[i].id << "...." << map_landmarks.landmark_list[landmarkList[i].id - 1].id_i << endl;
@@ -187,10 +187,9 @@ double ParticleFilter::getAccuracy(std::vector<LandmarkObs> landmarkList, const 
 		double mx = map_landmarks.landmark_list[landmarkList[i].id - 1].x_f;
 		double my = map_landmarks.landmark_list[landmarkList[i].id - 1].y_f;
 
-		//cout << "$$$" << lx << " | " << mx << " ||| " << ly << " | " << my << endl;
+		if (calcDistance(lx, ly, mx, my) > sensor_range) continue;
 
-		double dist = calcDistance(lx, ly, mx, my);
-		accuracy *= 1/dist;
+		accuracy *= gaussianMultivarProb(lx, ly, mx, my);
 		//cout << "*** " << dist; 
 	}
 
@@ -200,6 +199,20 @@ double ParticleFilter::getAccuracy(std::vector<LandmarkObs> landmarkList, const 
 
 
 	return accuracy;
+}
+
+double ParticleFilter::gaussianMultivarProb(double lx, double ly, double mx, double my) {
+    
+    double std_x = 0.3; /// ??????
+    double std_y = 0.3;
+    
+    double base = 1 / (2 * M_PI * std_x * std_y);
+    double epow = -(pow(lx - mx, 2) / (2 * pow(std_x, 2)) + pow(ly - my, 2) / (2*pow(std_y, 2)) );
+
+    //cout << "epow " << epow << endl;
+    double p = base * exp(epow);
+    
+    return p;
 }
 
 void ParticleFilter::normalizeWeights() {

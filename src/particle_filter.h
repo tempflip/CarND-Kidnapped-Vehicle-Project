@@ -130,11 +130,13 @@ public:
 
 	LandmarkObs transformLandmark(LandmarkObs l, Particle p, const Map &map_landmarks);
 
-	double getAccuracy(std::vector<LandmarkObs> landmarkList, const Map &map_landmarks);
+	double getAccuracy(std::vector<LandmarkObs> landmarkList, const Map &map_landmarks, double sensor_range);
 
 	double calcDistance(double x1, double y1, double x2, double y2);
 
 	void normalizeWeights();
+
+	double gaussianMultivarProb(double lx, double ly, double mx, double my);
 
 };
 
