@@ -276,9 +276,9 @@ void ParticleFilter::resample() {
 	}
 	//cout << "BEST W " << bestW << endl;
 
-	for (int c = 0; c < bestPList.size(); c++) {
-		cout << "BEST W: " << bestPList[c].weight << "\t x: "  << bestPList[c].x << "\t y: " << bestPList[c].y << "\t th: " << bestPList[c].theta << endl;
-	}
+	/*for (int c = 0; c < bestPList.size(); c++) {
+	*	cout << "BEST W: " << bestPList[c].weight << "\t x: "  << bestPList[c].x << "\t y: " << bestPList[c].y << "\t th: " << bestPList[c].theta << endl;
+	}*/
 
 
 	int sampleCounter;
