@@ -155,32 +155,24 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		std::vector<LandmarkObs> transformedLanList;
 
 		for (int i = 0; i < observations.size(); i++) {
-			//cout << "@ obs id \t" << observations[i].id << " x: " << observations[i].x << " y: " << observations[i].y <<endl;	
 			
 			LandmarkObs transformedLan = transformLandmark(observations[i], particles[c], map_landmarks);
 
 			transformedLanList.push_back(transformedLan);
-			
-			//cout << "@ obs trans id \t" << transformedLan.id << " x: " << transformedLan.x << " y: " << transformedLan.y <<endl;	
 
 		}	
 
-		double accuracy = getAccuracy(transformedLanList, map_landmarks, sensor_range);
+		double accuracy = getAccuracy(transformedLanList, map_landmarks, std_landmark, sensor_range);
 		
 		particles[c].weight = accuracy;
 	}
 	normalizeWeights();
 }
 
-double ParticleFilter::getAccuracy(std::vector<LandmarkObs> landmarkList, const Map &map_landmarks, double sensor_range) {
-
-	//cout << "## calc accuracy" << endl;
+double ParticleFilter::getAccuracy(std::vector<LandmarkObs> landmarkList, const Map &map_landmarks, double std_landmark[], double sensor_range) {
 
 	double accuracy = 1;
 	for (int i = 0; i < landmarkList.size(); i++) {
-
-
-		//cout << "$$$ " << landmarkList[i].id << "...." << map_landmarks.landmark_list[landmarkList[i].id - 1].id_i << endl;
 
 		double lx = landmarkList[i].x;
 		double ly = landmarkList[i].y;
@@ -189,23 +181,14 @@ double ParticleFilter::getAccuracy(std::vector<LandmarkObs> landmarkList, const 
 
 		if (calcDistance(lx, ly, mx, my) > sensor_range) continue;
 
-		accuracy *= gaussianMultivarProb(lx, ly, mx, my);
-		//cout << "*** " << dist; 
+		accuracy *= gaussianMultivarProb(lx, ly, mx, my, std_landmark[0], std_landmark[1]);
 	}
-
-	//for (int i = 0; i < map_landmarks.landmark_list.size() ; i ++) {		
-	//	cout << i << " ((((( " << map_landmarks.landmark_list[i].id_i << endl;
-	//}
-
 
 	return accuracy;
 }
 
-double ParticleFilter::gaussianMultivarProb(double lx, double ly, double mx, double my) {
-    
-    double std_x = 0.3; /// ??????
-    double std_y = 0.3;
-    
+double ParticleFilter::gaussianMultivarProb(double lx, double ly, double mx, double my, double std_x, double std_y) {
+        
     double base = 1 / (2 * M_PI * std_x * std_y);
     double epow = -(pow(lx - mx, 2) / (2 * pow(std_x, 2)) + pow(ly - my, 2) / (2*pow(std_y, 2)) );
 
