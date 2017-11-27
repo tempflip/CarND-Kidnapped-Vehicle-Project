@@ -29,7 +29,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	default_random_engine gen;
 	
 	is_initialized = true;
-	num_particles = 20;
+	num_particles = 30;
 	for (int i = 0; i < num_particles; i++) {
 		normal_distribution<double> dist_x(x, std[0]);
 		normal_distribution<double> dist_y(y, std[1]);
@@ -248,46 +248,29 @@ void ParticleFilter::resample() {
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
 
-	double bestW = 0;
-	Particle bestP;
-	std::vector<Particle> bestPList;
+	
+	std::vector<int> particleIndexWeightedList;
+	particleIndexWeightedList.clear();
 
-	int pToSample = 5;
-
-	while (bestPList.size() < pToSample) {
-		for (int i = 0; i < particles.size(); i ++) {
-			//cout << "## resample\tW: " << particles[i].weight << "\tx: " << particles[i].x << "\ty: " << particles[i].y << "\tth: " << particles[i].theta << endl;
-			
-			bool processed = false;
-			for (int c = 0; c < bestPList.size(); c++) {
-				if (particles[i].weight == bestPList[c].weight) processed = true;
-			}
-
-			if (processed == true) continue;
-
-			if (particles[i].weight > bestW) {
-				bestP = particles[i];
-				bestW = particles[i].weight;
-			}
+	double M = 200;
+	for (int particleIndex = 0; particleIndex < particles.size(); particleIndex++) {
+		for (int c = 0; c < particles[particleIndex].weight * M; c ++) {
+			particleIndexWeightedList.push_back(particleIndex);
 		}
-		//cout << "bestPList ping" << endl;
-		bestPList.push_back(bestP);
-		bestW = 0;
-	}
-	//cout << "BEST W " << bestW << endl;
-
-	/*for (int c = 0; c < bestPList.size(); c++) {
-	*	cout << "BEST W: " << bestPList[c].weight << "\t x: "  << bestPList[c].x << "\t y: " << bestPList[c].y << "\t th: " << bestPList[c].theta << endl;
-	}*/
-
-
-	int sampleCounter;
-	for (int i = 0; i < num_particles; i ++) {
-		particles[i] = bestPList[sampleCounter % pToSample];
-
-		sampleCounter++;
 	}
 
+	std::default_random_engine gen;
+ 	std::uniform_int_distribution<int> distribution(0,particleIndexWeightedList.size()-1);	
+
+ 	std::vector<Particle> resampledParticles;
+ 	resampledParticles.clear();
+
+ 	for (int i = 0; i < num_particles; i ++) {
+ 		int selectedParticleIndex = particleIndexWeightedList[distribution(gen)];
+ 		resampledParticles.push_back(particles[selectedParticleIndex]);
+ 	}
+
+ 	particles = resampledParticles;
 
 }
 
